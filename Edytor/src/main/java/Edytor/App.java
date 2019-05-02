@@ -22,7 +22,9 @@ import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
+import javax.swing.SwingUtilities;
 
+//Surface we are painting on, created in App
 class Surface extends JPanel {
     public Graphics2D g2d;
     public List<Figure> figures = new ArrayList<>();
@@ -41,12 +43,15 @@ class Surface extends JPanel {
     }
 }
 
+// Class of figures that i keep in a list on my surface
 class Figure {
-    private int locX = 0;
-    private int locY = 0;
+    private float locX = 0;
+    private float locY = 0;
+    private float width = 100f;
+    private float height = 100f;
     private String FigName;
-    private Rectangle2D rect;
-    private Ellipse2D ellipse;
+    private Rectangle2D.Float rect;
+    private Ellipse2D.Float ellipse;
 
     public Figure(int locX, int locY, String x) {
         this.locX = locX;
@@ -60,10 +65,61 @@ class Figure {
         {
             rect = new Rectangle2D.Float(locX, locY, 200f, 100f);
         }
-        if (FigName.compareTo("Polygon") == 0)
-            ;
+        //if (FigName.compareTo("Polygon") == 0)
+            //{}
     }
 
+    public boolean isHit (float x, float y) {
+        if (FigName.compareTo("Circle") == 0)
+            return ellipse.getBounds2D().contains(x, y);
+        if (FigName.compareTo("Rectangle") == 0)
+            return rect.getBounds2D().contains(x, y);
+        //if (FigName.compareTo("Polygon") == 0)
+        //;  
+        return false;        
+    }
+
+    public void addX(float x) {
+        if (FigName.compareTo("Circle") == 0)
+            ellipse.x += x;
+        if (FigName.compareTo("Rectangle") == 0)
+            rect.x += x;;
+        //if (FigName.compareTo("Polygon") == 0)
+            //;  
+        //this.locX += x;
+    }
+
+    public void addY(float y) {
+        
+        if (FigName.compareTo("Circle") == 0)
+            ellipse.y += y;
+        if (FigName.compareTo("Rectangle") == 0)
+            rect.y += y;
+        //if (FigName.compareTo("Polygon") == 0)
+            //;  
+        //this.locX += x;
+    }
+
+    public void addWidth(float w) {
+        
+        if (FigName.compareTo("Circle") == 0)
+            ellipse.width += w;
+        if (FigName.compareTo("Rectangle") == 0)
+            rect.width += w;
+        //if (FigName.compareTo("Polygon") == 0)
+            //;  
+    }
+
+    public void addHeight(float h) {
+        
+        if (FigName.compareTo("Circle") == 0)
+            ellipse.height += h;
+        if (FigName.compareTo("Rectangle") == 0)
+            rect.height += h;
+        //if (FigName.compareTo("Polygon") == 0)
+            //;  
+    }
+    
     public void draw(Graphics g) {
         Graphics2D g2d = (Graphics2D) g;
         g2d.setColor(Color.RED);
@@ -78,14 +134,15 @@ class Figure {
     }
 }
 
-class ClickAdapter extends MouseAdapter /* Adapter used for creating new shapes */ {
+// Adapter used for creating new shapes
+class ShapeCreationAdapter extends MouseAdapter  {
     public int x;
     public int y;
     public String Name;
     public Figure figure;
     public Surface surface;
 
-    public ClickAdapter(String x, Surface sur) {
+    public ShapeCreationAdapter(String x, Surface sur) {
         Name = x;
         surface = sur;
     }
@@ -98,6 +155,32 @@ class ClickAdapter extends MouseAdapter /* Adapter used for creating new shapes 
         surface.repaint();
         System.out.println(Name);
     }
+}
+
+class ShapeEditionAdapter extends MouseAdapter  {
+    public int x;
+    public int y;
+    public String Name;
+    public Figure figure;
+    public Surface surface;
+    boolean IsRightPressed, IsLeftPressed;
+
+    public ShapeEditionAdapter(String x, Surface sur) {
+        Name = x;
+        surface = sur;
+    }
+
+    public void mousePressed(MouseEvent e) {
+        x = e.getX();
+        y = e.getY();
+        IsLeftPressed = SwingUtilities.isLeftMouseButton(e);
+        IsRightPressed = SwingUtilities.isRightMouseButton(e);
+    }
+
+    public void mouseDragged(MouseEvent e) {
+        
+    }
+    
 }
 
 class MyButton extends JButton implements ActionListener {
@@ -116,7 +199,7 @@ class MyButton extends JButton implements ActionListener {
         for (MouseListener listener : listerners) {
             surface.removeMouseListener(listener);
         }
-        surface.addMouseListener(new ClickAdapter(super.getText(), surface));
+        surface.addMouseListener(new ShapeCreationAdapter(super.getText(), surface));
     }
 }
 class MyCheckBox extends JCheckBox implements ActionListener{
@@ -139,6 +222,7 @@ class MyCheckBox extends JCheckBox implements ActionListener{
         }
         if(super.isSelected())
         {
+            surface.addMouseListener(new ShapeEditionAdapter(super.getText(), surface));
             CircleButton.setEnabled(false);
             RectangleButton.setEnabled(false);
             PolygonButton.setEnabled(false);
