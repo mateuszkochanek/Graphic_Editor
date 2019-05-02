@@ -12,6 +12,7 @@ import java.awt.event.ComponentListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -30,13 +31,14 @@ class Surface extends JPanel {
     public List<Figure> figures = new ArrayList<>();
 
     public Surface() {
-        setBackground(new Color(200, 0, 0));
+        setBackground(new Color(0, 0, 0));
         setOpaque(true);
     }
 
     @Override
     public void paintComponent(Graphics g) {
         Graphics2D g2d = (Graphics2D) g;
+        super.paintComponent(g);
         for (Figure figure : figures) {
             figure.draw(g);
         }
@@ -45,8 +47,8 @@ class Surface extends JPanel {
 
 // Class of figures that i keep in a list on my surface
 class Figure {
-    private float locX = 0;
-    private float locY = 0;
+    public float locX = 0;
+    public float locY = 0;
     private float width = 100f;
     private float height = 100f;
     private String FigName;
@@ -86,7 +88,7 @@ class Figure {
             rect.x += x;;
         //if (FigName.compareTo("Polygon") == 0)
             //;  
-        //this.locX += x;
+        this.locX += x;
     }
 
     public void addY(float y) {
@@ -97,7 +99,7 @@ class Figure {
             rect.y += y;
         //if (FigName.compareTo("Polygon") == 0)
             //;  
-        //this.locX += x;
+        this.locY += y;
     }
 
     public void addWidth(float w) {
@@ -158,10 +160,9 @@ class ShapeCreationAdapter extends MouseAdapter  {
 }
 
 class ShapeEditionAdapter extends MouseAdapter  {
-    public int x;
-    public int y;
+    public float x;
+    public float y;
     public String Name;
-    public Figure figure;
     public Surface surface;
     boolean IsRightPressed, IsLeftPressed;
 
@@ -178,7 +179,28 @@ class ShapeEditionAdapter extends MouseAdapter  {
     }
 
     public void mouseDragged(MouseEvent e) {
-        
+        System.out.println(" ddddd");
+        if(IsLeftPressed && !IsRightPressed)
+            doMove(e);
+        else if(IsRightPressed && !IsLeftPressed)
+            doResize(e);
+    }
+    public void doMove(MouseEvent e) {
+        float dx = e.getX() - x;
+        float dy = e.getY() - y;
+        for (Figure figure : surface.figures) {
+            if(figure.isHit(x,y))
+            {
+                figure.addX(dx);
+                figure.addY(dy);
+            }
+        }
+        surface.repaint();
+        x+=dx;
+        y+=dy;
+    }
+    public void doResize(MouseEvent e) {
+
     }
     
 }
@@ -220,9 +242,15 @@ class MyCheckBox extends JCheckBox implements ActionListener{
         for (MouseListener listener : listerners) {
             surface.removeMouseListener(listener);
         }
+        MouseMotionListener[] mlisterners = surface.getMouseMotionListeners();
+        for (MouseMotionListener mlistener : mlisterners) {
+            surface.removeMouseMotionListener(mlistener);
+        }
         if(super.isSelected())
         {
-            surface.addMouseListener(new ShapeEditionAdapter(super.getText(), surface));
+            MouseAdapter ma = new ShapeEditionAdapter(super.getText(), surface);
+            surface.addMouseListener(ma);
+            surface.addMouseMotionListener(ma);
             CircleButton.setEnabled(false);
             RectangleButton.setEnabled(false);
             PolygonButton.setEnabled(false);
