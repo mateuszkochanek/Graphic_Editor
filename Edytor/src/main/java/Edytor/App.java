@@ -31,7 +31,7 @@ class Surface extends JPanel {
     public List<Figure> figures = new ArrayList<>();
 
     public Surface() {
-        setBackground(new Color(0, 0, 0));
+        setBackground(new Color(254, 254, 254));
         setOpaque(true);
     }
 
@@ -52,6 +52,7 @@ class Figure {
     private float width = 100f;
     private float height = 100f;
     private String FigName;
+    private Color color;
     private Rectangle2D.Float rect;
     private Ellipse2D.Float ellipse;
 
@@ -162,6 +163,7 @@ class ShapeCreationAdapter extends MouseAdapter  {
 class ShapeEditionAdapter extends MouseAdapter  {
     public float x;
     public float y;
+    private Figure figure;
     public String Name;
     public Surface surface;
     boolean IsRightPressed, IsLeftPressed;
@@ -176,6 +178,12 @@ class ShapeEditionAdapter extends MouseAdapter  {
         y = e.getY();
         IsLeftPressed = SwingUtilities.isLeftMouseButton(e);
         IsRightPressed = SwingUtilities.isRightMouseButton(e);
+        for (Figure figure_test : surface.figures) {
+            if(figure_test.isHit(x,y))
+            {
+                figure = figure_test;
+            }
+        }
     }
 
     public void mouseDragged(MouseEvent e) {
@@ -188,19 +196,24 @@ class ShapeEditionAdapter extends MouseAdapter  {
     public void doMove(MouseEvent e) {
         float dx = e.getX() - x;
         float dy = e.getY() - y;
-        for (Figure figure : surface.figures) {
-            if(figure.isHit(x,y))
-            {
-                figure.addX(dx);
-                figure.addY(dy);
-            }
-        }
+
+        figure.addX(dx);
+        figure.addY(dy);
+
         surface.repaint();
         x+=dx;
         y+=dy;
     }
     public void doResize(MouseEvent e) {
+        float dx = e.getX()-x;
+        float dy = e.getY()-y;
 
+        figure.addHeight(dy);
+        figure.addWidth(dx);
+
+        surface.repaint();
+        x+=dx;
+        y+=dy;
     }
     
 }
