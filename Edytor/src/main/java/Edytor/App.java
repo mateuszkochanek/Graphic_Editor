@@ -56,10 +56,14 @@ class Point{
     }
     void PointAddX(float dx){x+=dx;}
     void PointAddY(float dy){y+=dy;}
+    void MakeItMiddle(float number){x/=number; y/=number;}
 }
 class Polygon{
     float firstX;
     float firstY;
+    public Point middle = new Point(0,0);
+    public Point pointOfClick = new Point(0,0);
+    int minPointIndex;
     public List<Point> points = new ArrayList<>();
     GeneralPath PolygonShape = new GeneralPath();
     Polygon(float locX, float locY)
@@ -75,6 +79,26 @@ class Polygon{
         points.add(new Point(locX,locY));
         PolygonShape.lineTo(points.get(points.size()-1).x, points.get(points.size()-1).y);
     }
+    void GetPointOfClick(float locX, float locY)
+    {
+        pointOfClick = new Point(locX,locY);
+        Point tempPoint = new Point(0,0);
+        Point minPoint = points.get(0);
+        minPointIndex = 0;
+        float wayToMinP = (float) java.lang.Math.sqrt((minPoint.x - pointOfClick.x) * (minPoint.x - pointOfClick.x) + (minPoint.y - pointOfClick.y) * (minPoint.y - pointOfClick.y));
+        float wayToTempP = wayToMinP;
+        for (int i=0;i<points.size();i++) {
+            System.out.println(minPoint.x + " " +minPoint.y);
+            tempPoint=points.get(i);
+            wayToTempP = (float) java.lang.Math.sqrt((tempPoint.x - pointOfClick.x) * (tempPoint.x - pointOfClick.x) + (tempPoint.y - pointOfClick.y) * (tempPoint.y - pointOfClick.y));
+            if(wayToTempP<wayToMinP)
+            {
+                minPointIndex=i;
+                minPoint = tempPoint;
+                wayToMinP = wayToTempP;
+            }
+        }
+    }
 
     void incX(float dx){
         firstX += dx;
@@ -89,6 +113,18 @@ class Polygon{
             points.get(i).PointAddY(dy);
         }
     }
+
+    void incHeight(float dy){
+        points.get(minPointIndex).y+=dy;
+        if(minPointIndex==0)
+            firstY += dy;
+    }
+    void incWidth(float dx){
+        points.get(minPointIndex).x+=dx;
+        if(minPointIndex==0)
+            firstX += dx;
+    }
+
     void Recreate ()
     {
         PolygonShape = new GeneralPath();
@@ -96,6 +132,18 @@ class Polygon{
         for (int i=1;i<points.size();i++) {
             PolygonShape.lineTo(points.get(i).x, points.get(i).y);
         }
+        CalculateMiddle();
+    }
+
+    void CalculateMiddle()
+    {
+        middle.x=firstX;
+        middle.y=firstY;
+        for (int i=1;i<points.size();i++) {
+            middle.x+=points.get(i).x;
+            middle.y+=points.get(i).y;
+        }
+        middle.MakeItMiddle(points.size());
     }
 }
 
@@ -105,7 +153,7 @@ class Figure {
     public float locY = 0;
     private float width = 100f;
     private float height = 100f;
-    private String FigName;
+    public String FigName;
     public Color color;
     private Rectangle2D.Float rect;
     private Ellipse2D.Float ellipse;
@@ -173,8 +221,11 @@ class Figure {
             ellipse.width += w;
         if (FigName.compareTo("Rectangle") == 0)
             rect.width += w;
-        //if (FigName.compareTo("Polygon") == 0)
-            //;  
+        if (FigName.compareTo("Polygon") == 0)
+        {
+            polygon.incWidth(w);
+            polygon.Recreate();
+        }   
     }
 
     public void addHeight(float h) {
@@ -183,8 +234,11 @@ class Figure {
             ellipse.height += h;
         if (FigName.compareTo("Rectangle") == 0)
             rect.height += h;
-        //if (FigName.compareTo("Polygon") == 0)
-            //;  
+            if (FigName.compareTo("Polygon") == 0)
+            {
+                polygon.incHeight(h);
+                polygon.Recreate();
+            }    
     }
     
     public void draw(Graphics g) {
@@ -196,25 +250,12 @@ class Figure {
         if (FigName.compareTo("Rectangle") == 0)
             g2d.fill(rect);
         if (FigName.compareTo("Polygon") == 0)
+        {
             g2d.fill(polygon.PolygonShape);
-    }
-}
-
-class PolygonCreationAdapter extends MouseAdapter{
-    public int x;
-    public int y;
-    public Figure figure;
-    public Surface surface;
-
-    public PolygonCreationAdapter(Figure fig, Surface sur) {
-        figure = fig;
-        surface = sur;
-    }
-    public void mouseClicked(MouseEvent e) {
-        x = e.getX();
-        y = e.getY();
-        figure.polygon.AddPoint(x,y);
-        surface.repaint();
+            g2d.setColor(Color.RED);
+            g2d.drawLine((int)polygon.middle.x,(int)polygon.middle.y,(int)polygon.middle.x+1,(int)polygon.middle.y+1);//TODO delet this, only for testing purposes
+        }
+            //g2d.fill(polygon.PolygonShape);
     }
 }
 
@@ -244,6 +285,7 @@ class ShapeCreationAdapter extends MouseAdapter  {
         else if(Name.compareTo("Polygon")==0 && clicked)
         {
             (surface.figures.get(surface.figures.size()-1)).polygon.AddPoint(x,y);
+            (surface.figures.get(surface.figures.size()-1)).polygon.CalculateMiddle();
             surface.repaint();
         }
         else
@@ -262,6 +304,7 @@ class ShapeEditionAdapter extends MouseAdapter  {
     public float y;
     private Figure figure;
     public String Name;
+    public String HitFigureName;
     public Surface surface;
     public JColorChooser chooser;
     public Color color;
@@ -281,6 +324,11 @@ class ShapeEditionAdapter extends MouseAdapter  {
             if(figure_test.isHit(x,y))
             {
                 figure = figure_test;
+                if(IsRightPressed && !IsLeftPressed && figure.FigName.compareTo("Polygon")==0)
+                {
+                    figure.polygon.GetPointOfClick(x, y);
+                }
+                    
             }
         }
         if(Name.compareTo("Choose Color")==0)
