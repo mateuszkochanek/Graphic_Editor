@@ -14,6 +14,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.Ellipse2D;
+import java.awt.geom.GeneralPath;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 
@@ -45,6 +46,39 @@ class Surface extends JPanel {
         }
     }
 }
+class Point{
+    float x;
+    float y;
+    Point (float locX,float locY)
+    {
+        x=locX;
+        y=locY;
+    }
+}
+class Polygon{
+    float firstX;
+    float firstY;
+    public List<Point> points = new ArrayList<>();
+    GeneralPath PolygonShape = new GeneralPath();
+    Polygon(float locX, float locY)
+    {
+        points.add(new Point(locX,locY));
+        firstX = locX;
+        firstY = locY;
+        PolygonShape.moveTo(firstX, firstY);
+    }
+
+    void AddPoint(float locX, float locY)
+    {
+        System.out.println(" ddddd");
+        points.add(new Point(locX,locY));
+        PolygonShape.lineTo(points.get(points.size()-1).x, points.get(points.size()-1).y);
+    }
+    boolean IsInBounds(float locX, float locY)
+    {
+        return true;
+    }
+}
 
 // Class of figures that i keep in a list on my surface
 class Figure {
@@ -56,6 +90,7 @@ class Figure {
     public Color color;
     private Rectangle2D.Float rect;
     private Ellipse2D.Float ellipse;
+    protected Polygon polygon;
 
     public Figure(int locX, int locY, String x) {
         this.locX = locX;
@@ -70,8 +105,10 @@ class Figure {
         {
             rect = new Rectangle2D.Float(locX, locY, 200f, 100f);
         }
-        //if (FigName.compareTo("Polygon") == 0)
-            //{}
+        if (FigName.compareTo("Polygon") == 0)
+        {
+            polygon = new Polygon(locX, locY);
+        }
     }
 
     public boolean isHit (float x, float y) {
@@ -79,8 +116,8 @@ class Figure {
             return ellipse.getBounds2D().contains(x, y);
         if (FigName.compareTo("Rectangle") == 0)
             return rect.getBounds2D().contains(x, y);
-        //if (FigName.compareTo("Polygon") == 0)
-        //;  
+        if (FigName.compareTo("Polygon") == 0)
+            return polygon.PolygonShape.getBounds2D().contains(x, y);  
         return false;        
     }
 
@@ -134,8 +171,25 @@ class Figure {
         if (FigName.compareTo("Rectangle") == 0)
             g2d.fill(rect);
         if (FigName.compareTo("Polygon") == 0)
-            ;
-        // g2d.fillOval(locX, locY, 10, 10);
+            g2d.fill(polygon.PolygonShape);
+    }
+}
+
+class PolygonCreationAdapter extends MouseAdapter{
+    public int x;
+    public int y;
+    public Figure figure;
+    public Surface surface;
+
+    public PolygonCreationAdapter(Figure fig, Surface sur) {
+        figure = fig;
+        surface = sur;
+    }
+    public void mouseClicked(MouseEvent e) {
+        x = e.getX();
+        y = e.getY();
+        figure.polygon.AddPoint(x,y);
+        surface.repaint();
     }
 }
 
@@ -146,6 +200,7 @@ class ShapeCreationAdapter extends MouseAdapter  {
     public String Name;
     public Figure figure;
     public Surface surface;
+    public boolean clicked = false;
 
     public ShapeCreationAdapter(String x, Surface sur) {
         Name = x;
@@ -155,10 +210,25 @@ class ShapeCreationAdapter extends MouseAdapter  {
     public void mouseClicked(MouseEvent e) {
         x = e.getX();
         y = e.getY();
-        figure = new Figure(x, y, Name);
-        surface.figures.add(figure);
-        surface.repaint();
-        System.out.println(Name);
+        if(Name.compareTo("Polygon")==0 && !clicked)
+        {
+            clicked=true;
+            figure = new Figure(x, y, Name);
+            surface.figures.add(figure);
+        }
+        else if(Name.compareTo("Polygon")==0 && clicked)
+        {
+            (surface.figures.get(surface.figures.size()-1)).polygon.AddPoint(x,y);
+            surface.repaint();
+        }
+        else
+        {
+            figure = new Figure(x, y, Name);
+            surface.figures.add(figure);
+            surface.repaint();
+            System.out.println(Name);
+        }
+
     }
 }
 
@@ -208,7 +278,6 @@ class ShapeEditionAdapter extends MouseAdapter  {
     }
 
     public void mouseDragged(MouseEvent e) {
-        System.out.println(" ddddd");
         if(IsLeftPressed && !IsRightPressed)
             doMove(e);
         else if(IsRightPressed && !IsLeftPressed)
@@ -242,7 +311,6 @@ class ShapeEditionAdapter extends MouseAdapter  {
 class MyButton extends JButton implements ActionListener {
 
     Surface surface;
-
     public MyButton(String text, Surface sur) {
         surface = sur;
         super.setText(text);
