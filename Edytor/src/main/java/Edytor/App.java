@@ -23,6 +23,9 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JColorChooser;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
@@ -451,7 +454,19 @@ class MyCheckBox extends JCheckBox implements ActionListener{
         }
     }
 }
+class MyMenuItem extends JMenuItem implements ActionListener{
+    Surface surface;
+    String Name;
+    MyMenuItem(String text, Surface sur)
+    {
+        surface = sur;
+        Name=text;
+        super.setText(Name);
+    }
+    public void actionPerformed(ActionEvent e) {
 
+    }
+}
 public class App extends JFrame {
     private Surface surface;
     public App() {
@@ -472,22 +487,39 @@ public class App extends JFrame {
     private void CreateToolBar() {
 
         JToolBar toolbar = new JToolBar("Options",1);
+        JMenuBar menubar = new JMenuBar();
+        MyMenuItem Open = new MyMenuItem("Open",surface);
+        MyMenuItem Save = new MyMenuItem("Save",surface);
+        MyMenuItem New = new MyMenuItem("New",surface);
+        MyButton InfoButton = new MyButton("Info",surface);
+        JMenu fileMenu = new JMenu("File");
         MyButton CircleButton = new MyButton("Circle", surface);
         MyButton RectangleButton = new MyButton("Rectangle", surface);
         MyButton PolygonButton = new MyButton("Polygon", surface);
-        MyButton ColorChooserButton = new MyButton("Choose Color",surface);
-        MyButton InfoButton = new MyButton("Info",surface);
+        MyButton ColorChooserButton = new MyButton("Choose Color",surface);  
         MyCheckBox EditButton  = new MyCheckBox("Edit",surface,CircleButton,RectangleButton,PolygonButton,ColorChooserButton);
         ColorChooserButton.setEnabled(false);
+
+        //making button look like a manu item
+        InfoButton.setOpaque(true);
+        InfoButton.setContentAreaFilled(false);
+        InfoButton.setBorderPainted(false);
+        InfoButton.setFocusable(false);
 
         toolbar.add(CircleButton);
         toolbar.add(RectangleButton);
         toolbar.add(PolygonButton);
         toolbar.add(EditButton);
         toolbar.add(ColorChooserButton);
-        toolbar.add(InfoButton);
+
+        menubar.add(fileMenu);
+        fileMenu.add(Open);
+        fileMenu.add(Save);
+        fileMenu.add(New);
+        menubar.add(InfoButton);
 
         add(toolbar, BorderLayout.EAST);
+        add(menubar, BorderLayout.NORTH);
     }
 
     public static void main(String[] args) {
