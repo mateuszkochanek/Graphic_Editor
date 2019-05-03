@@ -54,6 +54,8 @@ class Point{
         x=locX;
         y=locY;
     }
+    void PointAddX(float dx){x+=dx;}
+    void PointAddY(float dy){y+=dy;}
 }
 class Polygon{
     float firstX;
@@ -70,13 +72,30 @@ class Polygon{
 
     void AddPoint(float locX, float locY)
     {
-        System.out.println(" ddddd");
         points.add(new Point(locX,locY));
         PolygonShape.lineTo(points.get(points.size()-1).x, points.get(points.size()-1).y);
     }
-    boolean IsInBounds(float locX, float locY)
+
+    void incX(float dx){
+        firstX += dx;
+        for (int i=0;i<points.size();i++) {
+            points.get(i).PointAddX(dx);
+        }
+
+    }
+    void incY(float dy){
+        firstY += dy;
+        for (int i=0;i<points.size();i++) {
+            points.get(i).PointAddY(dy);
+        }
+    }
+    void Recreate ()
     {
-        return true;
+        PolygonShape = new GeneralPath();
+        PolygonShape.moveTo(firstX, firstY);
+        for (int i=1;i<points.size();i++) {
+            PolygonShape.lineTo(points.get(i).x, points.get(i).y);
+        }
     }
 }
 
@@ -126,8 +145,11 @@ class Figure {
             ellipse.x += x;
         if (FigName.compareTo("Rectangle") == 0)
             rect.x += x;;
-        //if (FigName.compareTo("Polygon") == 0)
-            //;  
+        if (FigName.compareTo("Polygon") == 0)
+            {
+                polygon.incX(x);
+                polygon.Recreate();
+            }  
         this.locX += x;
     }
 
@@ -137,8 +159,11 @@ class Figure {
             ellipse.y += y;
         if (FigName.compareTo("Rectangle") == 0)
             rect.y += y;
-        //if (FigName.compareTo("Polygon") == 0)
-            //;  
+        if (FigName.compareTo("Polygon") == 0)
+        {
+            polygon.incY(y);
+            polygon.Recreate();
+        }   
         this.locY += y;
     }
 
