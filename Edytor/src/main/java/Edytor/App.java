@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JColorChooser;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
@@ -52,13 +53,14 @@ class Figure {
     private float width = 100f;
     private float height = 100f;
     private String FigName;
-    private Color color;
+    public Color color;
     private Rectangle2D.Float rect;
     private Ellipse2D.Float ellipse;
 
     public Figure(int locX, int locY, String x) {
         this.locX = locX;
         this.locY = locY;
+        color = Color.BLACK;
         FigName = x;
         if (FigName.compareTo("Circle") == 0)
         {
@@ -125,7 +127,7 @@ class Figure {
     
     public void draw(Graphics g) {
         Graphics2D g2d = (Graphics2D) g;
-        g2d.setColor(Color.RED);
+        g2d.setColor(color);
 
         if (FigName.compareTo("Circle") == 0)
             g2d.fill(ellipse);
@@ -166,6 +168,8 @@ class ShapeEditionAdapter extends MouseAdapter  {
     private Figure figure;
     public String Name;
     public Surface surface;
+    public JColorChooser chooser;
+    public Color color;
     boolean IsRightPressed, IsLeftPressed;
 
     public ShapeEditionAdapter(String x, Surface sur) {
@@ -184,6 +188,23 @@ class ShapeEditionAdapter extends MouseAdapter  {
                 figure = figure_test;
             }
         }
+        if(Name.compareTo("Choose Color")==0)
+        {
+            figure.color = JColorChooser.showDialog(null, "Change Color",figure.color);
+            surface.repaint();
+            MouseListener[] listerners = surface.getMouseListeners();
+            for (MouseListener listener : listerners) {
+                surface.removeMouseListener(listener);
+            MouseMotionListener[] mlisterners = surface.getMouseMotionListeners();
+            for (MouseMotionListener mlistener : mlisterners) {
+                    surface.removeMouseMotionListener(mlistener);
+                }
+            MouseAdapter ma = new ShapeEditionAdapter("Edit", surface);
+            surface.addMouseListener(ma);
+            surface.addMouseMotionListener(ma);
+        }
+        }
+        
     }
 
     public void mouseDragged(MouseEvent e) {
@@ -234,19 +255,25 @@ class MyButton extends JButton implements ActionListener {
         for (MouseListener listener : listerners) {
             surface.removeMouseListener(listener);
         }
-        surface.addMouseListener(new ShapeCreationAdapter(super.getText(), surface));
+        if (super.getText().compareTo("Choose Color") == 0)
+        {
+            surface.addMouseListener(new ShapeEditionAdapter(super.getText(), surface));
+        }
+        else
+            surface.addMouseListener(new ShapeCreationAdapter(super.getText(), surface));
     }
 }
 class MyCheckBox extends JCheckBox implements ActionListener{
     Surface surface;
-    MyButton CircleButton,RectangleButton,PolygonButton;
-    public MyCheckBox(String text, Surface sur, MyButton C, MyButton R, MyButton P) {
+    MyButton CircleButton,RectangleButton,PolygonButton,ColorChooserButton;
+    public MyCheckBox(String text, Surface sur, MyButton C, MyButton R, MyButton P, MyButton Col) {
         surface = sur;
         super.setText(text);
         addActionListener(this);
         CircleButton = C; 
         RectangleButton = R; 
         PolygonButton = P;
+        ColorChooserButton = Col;
     }
 
     @Override
@@ -267,12 +294,14 @@ class MyCheckBox extends JCheckBox implements ActionListener{
             CircleButton.setEnabled(false);
             RectangleButton.setEnabled(false);
             PolygonButton.setEnabled(false);
+            ColorChooserButton.setEnabled(true);
         }
         else
         {
             CircleButton.setEnabled(true);
             RectangleButton.setEnabled(true);
             PolygonButton.setEnabled(true);
+            ColorChooserButton.setEnabled(false);
         }
     }
 }
@@ -300,12 +329,15 @@ public class App extends JFrame {
         MyButton CircleButton = new MyButton("Circle", surface);
         MyButton RectangleButton = new MyButton("Rectangle", surface);
         MyButton PolygonButton = new MyButton("Polygon", surface);
-        MyCheckBox EditButton  = new MyCheckBox("Edit",surface,CircleButton,RectangleButton,PolygonButton);
+        MyButton ColorChooserButton = new MyButton("Choose Color",surface);
+        MyCheckBox EditButton  = new MyCheckBox("Edit",surface,CircleButton,RectangleButton,PolygonButton,ColorChooserButton);
+        ColorChooserButton.setEnabled(false);
 
         toolbar.add(CircleButton);
         toolbar.add(RectangleButton);
         toolbar.add(PolygonButton);
         toolbar.add(EditButton);
+        toolbar.add(ColorChooserButton);
 
         add(toolbar, BorderLayout.EAST);
     }
