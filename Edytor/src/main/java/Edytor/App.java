@@ -23,6 +23,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JColorChooser;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
@@ -400,6 +401,10 @@ class MyButton extends JButton implements ActionListener {
         {
             surface.addMouseListener(new ShapeEditionAdapter(super.getText(), surface));
         }
+        if (super.getText().compareTo("Info") == 0)
+        {
+            JOptionPane.showMessageDialog(surface, "Made by Mateusz Kochanek\nCreated to make Shapes\nWhen in Edit mode:\n-> LeftMouse Button to move\n-> RightMouseButton to resize");
+        }
         else
             surface.addMouseListener(new ShapeCreationAdapter(super.getText(), surface));
     }
@@ -459,7 +464,7 @@ public class App extends JFrame {
         CreateToolBar();
 
         setTitle("Edytor");
-        setSize(300, 200);
+        setSize(500, 500);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
@@ -471,6 +476,7 @@ public class App extends JFrame {
         MyButton RectangleButton = new MyButton("Rectangle", surface);
         MyButton PolygonButton = new MyButton("Polygon", surface);
         MyButton ColorChooserButton = new MyButton("Choose Color",surface);
+        MyButton InfoButton = new MyButton("Info",surface);
         MyCheckBox EditButton  = new MyCheckBox("Edit",surface,CircleButton,RectangleButton,PolygonButton,ColorChooserButton);
         ColorChooserButton.setEnabled(false);
 
@@ -479,6 +485,7 @@ public class App extends JFrame {
         toolbar.add(PolygonButton);
         toolbar.add(EditButton);
         toolbar.add(ColorChooserButton);
+        toolbar.add(InfoButton);
 
         add(toolbar, BorderLayout.EAST);
     }
