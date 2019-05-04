@@ -534,6 +534,7 @@ class MyMenuItem extends JMenuItem implements ActionListener {
 }
 public class App extends JFrame {
     public Surface surface = new Surface();
+    public JToolBar toolbar = new JToolBar();
     public App() {
         initUI();
     }
@@ -541,6 +542,7 @@ public class App extends JFrame {
     private void initUI() {
         add(surface, BorderLayout.CENTER);
         CreateToolBar();
+        CreateMenuBar();
 
         setTitle("Edytor");
         setSize(800, 800);
@@ -550,28 +552,27 @@ public class App extends JFrame {
     public void ChangeSurface(Surface sur)
     {
         this.remove(surface);
+        this.remove(toolbar);
         this.surface = sur;
         add(surface, BorderLayout.CENTER);
+        CreateToolBar();
         this.surface.repaint();
+        this.validate(); 
     }
     public void NewSurface()
     {
-        System.out.println("aaaa plox nie czysc plox");
         this.remove(surface);
-        this.surface = new Surface();
+        this.remove(toolbar);
+        surface = new Surface();
         add(surface, BorderLayout.CENTER);
+        CreateToolBar();
         this.surface.repaint();
-        this.validate();
+        this.validate(); 
     }
     private void CreateToolBar() {
 
-        JToolBar toolbar = new JToolBar("Options",1);
-        JMenuBar menubar = new JMenuBar();
-        MyMenuItem Open = new MyMenuItem("Open",surface,this);
-        MyMenuItem Save = new MyMenuItem("Save",surface,this);
-        MyMenuItem New = new MyMenuItem("New",surface,this);
-        MyButton InfoButton = new MyButton("Info",surface);
-        JMenu fileMenu = new JMenu("File");
+        toolbar = new JToolBar("Options",1);
+        
         MyButton CircleButton = new MyButton("Circle", surface);
         MyButton RectangleButton = new MyButton("Rectangle", surface);
         MyButton PolygonButton = new MyButton("Polygon", surface);
@@ -579,17 +580,28 @@ public class App extends JFrame {
         MyCheckBox EditButton  = new MyCheckBox("Edit",surface,CircleButton,RectangleButton,PolygonButton,ColorChooserButton);
         ColorChooserButton.setEnabled(false);
 
-        //making button look like a manu item
-        InfoButton.setOpaque(true);
-        InfoButton.setContentAreaFilled(false);
-        InfoButton.setBorderPainted(false);
-        InfoButton.setFocusable(false);
-
         toolbar.add(CircleButton);
         toolbar.add(RectangleButton);
         toolbar.add(PolygonButton);
         toolbar.add(EditButton);
         toolbar.add(ColorChooserButton);
+
+        add(toolbar, BorderLayout.EAST);
+        
+    }
+    private void CreateMenuBar() {
+        JMenuBar menubar = new JMenuBar();
+        MyMenuItem Open = new MyMenuItem("Open",surface,this);
+        MyMenuItem Save = new MyMenuItem("Save",surface,this);
+        MyMenuItem New = new MyMenuItem("New",surface,this);
+        MyButton InfoButton = new MyButton("Info",surface);
+        JMenu fileMenu = new JMenu("File");
+
+        //making button look like a manu item
+        InfoButton.setOpaque(true);
+        InfoButton.setContentAreaFilled(false);
+        InfoButton.setBorderPainted(false);
+        InfoButton.setFocusable(false);
 
         menubar.add(fileMenu);
         fileMenu.add(Open);
@@ -597,10 +609,8 @@ public class App extends JFrame {
         fileMenu.add(New);
         menubar.add(InfoButton);
 
-        add(toolbar, BorderLayout.EAST);
         add(menubar, BorderLayout.NORTH);
     }
-
     public static void main(String[] args) {
 
         EventQueue.invokeLater(new Runnable() {
