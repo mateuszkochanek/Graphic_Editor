@@ -8,7 +8,6 @@ import java.awt.Graphics2D;
 import java.util.List;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -26,7 +25,6 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.io.Serializable;
 
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JColorChooser;
@@ -51,7 +49,6 @@ class Surface extends JPanel{
 
     @Override
     public void paintComponent(Graphics g) {
-        Graphics2D g2d = (Graphics2D) g;
         super.paintComponent(g);
         for (Figure figure : figures) {
             figure.draw(g);
@@ -62,7 +59,6 @@ class Surface extends JPanel{
 class Point implements Serializable{
     float x;
     float y;
-
     Point(float locX, float locY) {
         x = locX;
         y = locY;
@@ -76,16 +72,11 @@ class Point implements Serializable{
         y += dy;
     }
 
-    void MakeItMiddle(float number) {
-        x /= number;
-        y /= number;
-    }
 }
 
 class Polygon implements Serializable{
     float firstX;
     float firstY;
-    public Point middle = new Point(0, 0);
     public Point pointOfClick = new Point(0, 0);
     int minPointIndex;
     public List<Point> points = new ArrayList<>();
@@ -108,9 +99,11 @@ class Polygon implements Serializable{
         Point tempPoint = new Point(0, 0);
         Point minPoint = points.get(0);
         minPointIndex = 0;
+
         float wayToMinP = (float) java.lang.Math.sqrt((minPoint.x - pointOfClick.x) * (minPoint.x - pointOfClick.x)
                 + (minPoint.y - pointOfClick.y) * (minPoint.y - pointOfClick.y));
         float wayToTempP = wayToMinP;
+
         for (int i = 0; i < points.size(); i++) {
             tempPoint = points.get(i);
             wayToTempP = (float) java.lang.Math.sqrt((tempPoint.x - pointOfClick.x) * (tempPoint.x - pointOfClick.x)
@@ -121,6 +114,7 @@ class Polygon implements Serializable{
                 wayToMinP = wayToTempP;
             }
         }
+
     }
 
     void incX(float dx) {
@@ -156,17 +150,6 @@ class Polygon implements Serializable{
         for (int i = 1; i < points.size(); i++) {
             PolygonShape.lineTo(points.get(i).x, points.get(i).y);
         }
-        CalculateMiddle();
-    }
-
-    void CalculateMiddle() {
-        middle.x = firstX;
-        middle.y = firstY;
-        for (int i = 1; i < points.size(); i++) {
-            middle.x += points.get(i).x;
-            middle.y += points.get(i).y;
-        }
-        middle.MakeItMiddle(points.size());
     }
 }
 
@@ -174,8 +157,6 @@ class Polygon implements Serializable{
 class Figure implements Serializable{
     public float locX = 0;
     public float locY = 0;
-    private float width = 100f;
-    private float height = 100f;
     public String FigName;
     public Color color;
     private Rectangle2D.Float rect;
@@ -187,34 +168,34 @@ class Figure implements Serializable{
         this.locY = locY;
         color = Color.BLACK;
         FigName = x;
+
         if (FigName.compareTo("Circle") == 0) {
             ellipse = new Ellipse2D.Float(locX, locY, 100f, 100f);
-        }
-        if (FigName.compareTo("Rectangle") == 0) {
+        } else if (FigName.compareTo("Rectangle") == 0) {
             rect = new Rectangle2D.Float(locX, locY, 200f, 100f);
-        }
-        if (FigName.compareTo("Polygon") == 0) {
+        } else if (FigName.compareTo("Polygon") == 0) {
             polygon = new Polygon(locX, locY);
         }
     }
 
     public boolean isHit(float x, float y) {
-        if (FigName.compareTo("Circle") == 0)
+        if (FigName.compareTo("Circle") == 0){
             return ellipse.getBounds2D().contains(x, y);
-        if (FigName.compareTo("Rectangle") == 0)
+        } else if (FigName.compareTo("Rectangle") == 0){
             return rect.getBounds2D().contains(x, y);
-        if (FigName.compareTo("Polygon") == 0)
+        } else if (FigName.compareTo("Polygon") == 0){
             return polygon.PolygonShape.getBounds2D().contains(x, y);
+        }
+
         return false;
     }
 
     public void addX(float x) {
-        if (FigName.compareTo("Circle") == 0)
+        if (FigName.compareTo("Circle") == 0){
             ellipse.x += x;
-        if (FigName.compareTo("Rectangle") == 0)
+        } else if (FigName.compareTo("Rectangle") == 0){
             rect.x += x;
-        ;
-        if (FigName.compareTo("Polygon") == 0) {
+        } else if (FigName.compareTo("Polygon") == 0) {
             polygon.incX(x);
             polygon.Recreate();
         }
@@ -223,11 +204,11 @@ class Figure implements Serializable{
 
     public void addY(float y) {
 
-        if (FigName.compareTo("Circle") == 0)
+        if (FigName.compareTo("Circle") == 0){
             ellipse.y += y;
-        if (FigName.compareTo("Rectangle") == 0)
+        } else if (FigName.compareTo("Rectangle") == 0){
             rect.y += y;
-        if (FigName.compareTo("Polygon") == 0) {
+        } else if (FigName.compareTo("Polygon") == 0) {
             polygon.incY(y);
             polygon.Recreate();
         }
@@ -236,11 +217,11 @@ class Figure implements Serializable{
 
     public void addWidth(float w) {
 
-        if (FigName.compareTo("Circle") == 0)
+        if (FigName.compareTo("Circle") == 0){
             ellipse.width += w;
-        if (FigName.compareTo("Rectangle") == 0)
+        } else if (FigName.compareTo("Rectangle") == 0){
             rect.width += w;
-        if (FigName.compareTo("Polygon") == 0) {
+        } else if (FigName.compareTo("Polygon") == 0) {
             polygon.incWidth(w);
             polygon.Recreate();
         }
@@ -248,11 +229,11 @@ class Figure implements Serializable{
 
     public void addHeight(float h) {
 
-        if (FigName.compareTo("Circle") == 0)
+        if (FigName.compareTo("Circle") == 0){
             ellipse.height += h;
-        if (FigName.compareTo("Rectangle") == 0)
+        } else if (FigName.compareTo("Rectangle") == 0){
             rect.height += h;
-        if (FigName.compareTo("Polygon") == 0) {
+        } else if (FigName.compareTo("Polygon") == 0) {
             polygon.incHeight(h);
             polygon.Recreate();
         }
@@ -262,17 +243,14 @@ class Figure implements Serializable{
         Graphics2D g2d = (Graphics2D) g;
         g2d.setColor(color);
 
-        if (FigName.compareTo("Circle") == 0)
+        if (FigName.compareTo("Circle") == 0){
             g2d.fill(ellipse);
-        if (FigName.compareTo("Rectangle") == 0)
+        } else if (FigName.compareTo("Rectangle") == 0){
             g2d.fill(rect);
-        if (FigName.compareTo("Polygon") == 0) {
+        } else if (FigName.compareTo("Polygon") == 0) {
             g2d.fill(polygon.PolygonShape);
             g2d.setColor(Color.RED);
-            g2d.drawLine((int) polygon.middle.x, (int) polygon.middle.y, (int) polygon.middle.x + 1,
-                    (int) polygon.middle.y + 1);// TODO delet this, only for testing purposes
         }
-        // g2d.fill(polygon.PolygonShape);
     }
 }
 
@@ -299,7 +277,6 @@ class ShapeCreationAdapter extends MouseAdapter {
             surface.figures.add(figure);
         } else if (Name.compareTo("Polygon") == 0 && clicked) {
             (surface.figures.get(surface.figures.size() - 1)).polygon.AddPoint(x, y);
-            (surface.figures.get(surface.figures.size() - 1)).polygon.CalculateMiddle();
             surface.repaint();
         } else {
             figure = new Figure(x, y, Name);
@@ -338,32 +315,34 @@ class ShapeEditionAdapter extends MouseAdapter {
                 if (IsRightPressed && !IsLeftPressed && figure.FigName.compareTo("Polygon") == 0) {
                     figure.polygon.GetPointOfClick(x, y);
                 }
-
             }
         }
         if (Name.compareTo("Choose Color") == 0) {
             figure.color = JColorChooser.showDialog(null, "Change Color", figure.color);
             surface.repaint();
+
+            MouseMotionListener[] mlisterners = surface.getMouseMotionListeners();
+            for (MouseMotionListener mlistener : mlisterners) {
+               surface.removeMouseMotionListener(mlistener);
+            }
             MouseListener[] listerners = surface.getMouseListeners();
             for (MouseListener listener : listerners) {
                 surface.removeMouseListener(listener);
-                MouseMotionListener[] mlisterners = surface.getMouseMotionListeners();
-                for (MouseMotionListener mlistener : mlisterners) {
-                    surface.removeMouseMotionListener(mlistener);
-                }
-                MouseAdapter ma = new ShapeEditionAdapter("Edit", surface);
-                surface.addMouseListener(ma);
-                surface.addMouseMotionListener(ma);
             }
+
+            MouseAdapter ma = new ShapeEditionAdapter("Edit", surface);
+            surface.addMouseListener(ma);
+            surface.addMouseMotionListener(ma);
         }
 
     }
 
     public void mouseDragged(MouseEvent e) {
-        if (IsLeftPressed && !IsRightPressed)
+        if (IsLeftPressed && !IsRightPressed){
             doMove(e);
-        else if (IsRightPressed && !IsLeftPressed)
+        } else if (IsRightPressed && !IsLeftPressed){
             doResize(e);
+        }
     }
 
     public void doMove(MouseEvent e) {
@@ -404,19 +383,18 @@ class MyButton extends JButton implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        //TODO usun
         MouseListener[] listerners = surface.getMouseListeners();
         for (MouseListener listener : listerners) {
             surface.removeMouseListener(listener);
         }
         if (super.getText().compareTo("Choose Color") == 0) {
             surface.addMouseListener(new ShapeEditionAdapter(super.getText(), surface));
-        }
-        if (super.getText().compareTo("Info") == 0) {
+        } else if (super.getText().compareTo("Info") == 0) {
             JOptionPane.showMessageDialog(surface,
                     "Made by Mateusz Kochanek\nCreated to make Shapes\nWhen in Edit mode:\n-> LeftMouse Button to move\n-> RightMouseButton to resize");
-        } else
+        } else {
             surface.addMouseListener(new ShapeCreationAdapter(super.getText(), surface));
+        }
     }
 }
 
@@ -480,7 +458,7 @@ class MyMenuItem extends JMenuItem implements ActionListener {
             ObjectInputStream pl2 = null;
             Surface sur = null;
             try {
-                fileName ="src/main/java/Edytor/" + fileName;
+                fileName ="src/main/java/Edytor/Saved/" + fileName;
                 pl2 = new ObjectInputStream(new FileInputStream(fileName));
                 sur = (Surface) pl2.readObject();
                 System.out.println("Donzo");
@@ -504,16 +482,16 @@ class MyMenuItem extends JMenuItem implements ActionListener {
                         System.out.println("Nope");
                     }
             }
-        }
-        else if (super.getText().compareTo("Save") == 0)
-        {
+        } else if (super.getText().compareTo("Save") == 0) {
             String fileName = JOptionPane.showInputDialog(surface, "Podaj nazwę pliku:");
             ObjectOutputStream pl=null;
             try{
-                fileName ="src/main/java/Edytor/" + fileName;
+                if(fileName!=null){
+                fileName ="src/main/java/Edytor/Saved/" + fileName;
                 pl=new ObjectOutputStream(new FileOutputStream(fileName)); 
                 pl.writeObject(surface);
                 pl.flush();
+                }
             } catch (IOException e1) {
                 System.out.println(e1.getMessage());
             }
@@ -524,10 +502,8 @@ class MyMenuItem extends JMenuItem implements ActionListener {
                     } catch (IOException e1) {
                         System.out.println("Nope");
                     }
-        }
-        }
-        else if (super.getText().compareTo("New") == 0)
-        {
+            }
+        } else if (super.getText().compareTo("New") == 0) {
             appW.NewSurface();
         }
     }
