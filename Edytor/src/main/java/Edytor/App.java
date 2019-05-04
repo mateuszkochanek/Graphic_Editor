@@ -37,9 +37,13 @@ import javax.swing.JPanel;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 
-//Surface we are painting on, created in App
+/**
+ * Surface is an object we are painting on.
+ * 
+ * @author      Mateusz Kochanek
+ */
 class Surface extends JPanel{
-    public Graphics2D g2d;
+    /** List of {@link Figure} objects created */
     public List<Figure> figures = new ArrayList<>();
 
     public Surface() {
@@ -55,32 +59,39 @@ class Surface extends JPanel{
         }
     }
 }
-
+/**
+ * Object containing coordinates of a point on {@link Surface}
+ * 
+ * @author      Mateusz Kochanek
+ * @see       Surface
+ */
 class Point implements Serializable{
-    float x;
-    float y;
+    public float x;
+    public float y;
     Point(float locX, float locY) {
         x = locX;
         y = locY;
     }
-
-    void PointAddX(float dx) {
-        x += dx;
-    }
-
-    void PointAddY(float dy) {
-        y += dy;
-    }
-
 }
-
+/**
+ * Object defining Polygon shape and its methods.
+ * 
+ * @author      Mateusz Kochanek
+ */
 class Polygon implements Serializable{
-    float firstX;
-    float firstY;
-    public Point pointOfClick = new Point(0, 0);
-    int minPointIndex;
-    public List<Point> points = new ArrayList<>();
-    GeneralPath PolygonShape = new GeneralPath();
+
+    /** x coordinate of first point of polygon */
+    private float firstX;
+    /**y coordinate of first point of polygon*/
+    private float firstY;
+    /** Point of Click during resizing of a Polygon*/
+    private Point pointOfClick = new Point(0, 0);
+    /** Index of a point which is closest to {@link pointOfClick}*/
+    private int minPointIndex;
+    /** List of Polygon's points*/
+    private List<Point> points = new ArrayList<>();
+    /** Shape of Polygon*/
+    public GeneralPath PolygonShape = new GeneralPath();
 
     Polygon(float locX, float locY) {
         points.add(new Point(locX, locY));
@@ -89,11 +100,13 @@ class Polygon implements Serializable{
         PolygonShape.moveTo(firstX, firstY);
     }
 
+    /** Adds a Point to {@link points} */
     void AddPoint(float locX, float locY) {
         points.add(new Point(locX, locY));
         PolygonShape.lineTo(points.get(points.size() - 1).x, points.get(points.size() - 1).y);
     }
 
+    /** Gets {@link pointOfClick} */
     void GetPointOfClick(float locX, float locY) {
         pointOfClick = new Point(locX, locY);
         Point tempPoint = new Point(0, 0);
@@ -117,33 +130,42 @@ class Polygon implements Serializable{
 
     }
 
+    /** Increases x of  {@link points} during {@link Edytor.ShapeEditionAdapter#doMove(MouseEvent)}*/
     void incX(float dx) {
         firstX += dx;
         for (int i = 0; i < points.size(); i++) {
-            points.get(i).PointAddX(dx);
+            points.get(i).x += dx;
         }
 
     }
 
+    /** Increases y of  {@link points} during {@link Edytor.ShapeEditionAdapter#doMove(MouseEvent)}*/
     void incY(float dy) {
         firstY += dy;
         for (int i = 0; i < points.size(); i++) {
-            points.get(i).PointAddY(dy);
+            points.get(i).y += dy;
         }
     }
 
+    /** Increases y of point with {@link minPointIndex} */
     void incHeight(float dy) {
         points.get(minPointIndex).y += dy;
         if (minPointIndex == 0)
             firstY += dy;
     }
 
+    /** Increases x of point with {@link minPointIndex} */
     void incWidth(float dx) {
         points.get(minPointIndex).x += dx;
         if (minPointIndex == 0)
             firstX += dx;
     }
 
+    /** 
+     * Recreates Polygon when  {@link points} are updated in {@link ShapeEditionAdapter}
+     * @see Edytor.ShapeEditionAdapter#doMove(MouseEvent)
+     * @see Edytor.ShapeEditionAdapter#doResize(MouseEvent)
+    */
     void Recreate() {
         PolygonShape = new GeneralPath();
         PolygonShape.moveTo(firstX, firstY);
@@ -153,19 +175,25 @@ class Polygon implements Serializable{
     }
 }
 
-// Class of figures that i keep in a list on my surface
+/**
+ * Object defining Figures and their methods.
+ * 
+ *  @author Mateusz Kochanek
+ * 
+ */ 
 class Figure implements Serializable{
-    public float locX = 0;
-    public float locY = 0;
+    /** Name of a Figure passed from {@link Edytor.ShapeEditionAdapter} or {@link Edytor.ShapeCreationAdapter} */
     public String FigName;
+    /** Color of a Figure*/
     public Color color;
+    /** Object containing created Rectangle (if we create one)*/
     private Rectangle2D.Float rect;
+    /** Object containing created Ellipse (if we create one)*/
     private Ellipse2D.Float ellipse;
-    protected Polygon polygon;
+    /** Object containing created Polygon (if we create one)*/
+    public Polygon polygon;
 
-    public Figure(int locX, int locY, String x) {
-        this.locX = locX;
-        this.locY = locY;
+    public Figure(float locX, float locY, String x) {
         color = Color.BLACK;
         FigName = x;
 
@@ -177,7 +205,7 @@ class Figure implements Serializable{
             polygon = new Polygon(locX, locY);
         }
     }
-
+    /** Method checking of Figure was Clicked in {@link Edytor.ShapeEditionAdapter}*/
     public boolean isHit(float x, float y) {
         if (FigName.compareTo("Circle") == 0){
             return ellipse.getBounds2D().contains(x, y);
@@ -189,7 +217,7 @@ class Figure implements Serializable{
 
         return false;
     }
-
+    /** Moves clicked Figure for x*/
     public void addX(float x) {
         if (FigName.compareTo("Circle") == 0){
             ellipse.x += x;
@@ -199,9 +227,8 @@ class Figure implements Serializable{
             polygon.incX(x);
             polygon.Recreate();
         }
-        this.locX += x;
     }
-
+    /** Moves clicked Figure for y*/
     public void addY(float y) {
 
         if (FigName.compareTo("Circle") == 0){
@@ -212,9 +239,8 @@ class Figure implements Serializable{
             polygon.incY(y);
             polygon.Recreate();
         }
-        this.locY += y;
     }
-
+    /** Increases Width of clicked figure*/
     public void addWidth(float w) {
 
         if (FigName.compareTo("Circle") == 0){
@@ -226,7 +252,7 @@ class Figure implements Serializable{
             polygon.Recreate();
         }
     }
-
+    /** Increases Height of clicked figure*/
     public void addHeight(float h) {
 
         if (FigName.compareTo("Circle") == 0){
@@ -238,7 +264,7 @@ class Figure implements Serializable{
             polygon.Recreate();
         }
     }
-
+    /** Draws figure, diffrently depending on {@link FigName}*/
     public void draw(Graphics g) {
         Graphics2D g2d = (Graphics2D) g;
         g2d.setColor(color);
@@ -254,50 +280,65 @@ class Figure implements Serializable{
     }
 }
 
-// Adapter used for creating new shapes
+/**
+ * Used during Figure Creation
+ * 
+ *  @author Mateusz Kochanek
+ * 
+ */ 
 class ShapeCreationAdapter extends MouseAdapter {
-    public int x;
-    public int y;
-    public String Name;
-    public Figure figure;
-    public Surface surface;
-    public boolean clicked = false;
+    /**Name of {@link Figure} we are creating */
+    private String NameOfFigure;
+    /**{@link Figure} we are creating */
+    private Figure figure;
+    /**{@link Surface} we are painting on */
+    private Surface surface;
+    /**Informs us if we have already clicked befor with our mouse during creation of {@link figure}*/
+    private boolean clicked = false;
 
-    public ShapeCreationAdapter(String x, Surface sur) {
-        Name = x;
+    public ShapeCreationAdapter(String Name, Surface sur) {
+        NameOfFigure = Name;
         surface = sur;
     }
 
     public void mouseClicked(MouseEvent e) {
-        x = e.getX();
-        y = e.getY();
-        if (Name.compareTo("Polygon") == 0 && !clicked) {
+        float x = e.getX();
+        float y = e.getY();
+        if (NameOfFigure.compareTo("Polygon") == 0 && !clicked) {
             clicked = true;
-            figure = new Figure(x, y, Name);
+            figure = new Figure(x, y, NameOfFigure);
             surface.figures.add(figure);
-        } else if (Name.compareTo("Polygon") == 0 && clicked) {
+        } else if (NameOfFigure.compareTo("Polygon") == 0 && clicked) {
             (surface.figures.get(surface.figures.size() - 1)).polygon.AddPoint(x, y);
             surface.repaint();
         } else {
-            figure = new Figure(x, y, Name);
+            figure = new Figure(x, y, NameOfFigure);
             surface.figures.add(figure);
             surface.repaint();
-            System.out.println(Name);
+            System.out.println(NameOfFigure);
         }
 
     }
 }
-
+/**
+ * Used during Figure Edition
+ * 
+ *  @author Mateusz Kochanek
+ * 
+ */ 
 class ShapeEditionAdapter extends MouseAdapter {
-    public float x;
-    public float y;
+    /**x coordinate of our mouse on {@link Surface}*/
+    private float x;
+    /**y coordinate of our mouse on {@link Surface}*/
+    private float y;
+    /**{@link Figure} we are editing*/
     private Figure figure;
-    public String Name;
-    public String HitFigureName;
-    public Surface surface;
-    public JColorChooser chooser;
-    public Color color;
-    boolean IsRightPressed, IsLeftPressed;
+    /**Name of EditionAdapter created, Move and Resize/Color Choosing*/
+    private String Name;
+    /**{@link Surface} we are painting on */
+    private Surface surface;
+    /**Tells if we clicked with left/right mouse button*/
+    private boolean IsRightPressed, IsLeftPressed;
 
     public ShapeEditionAdapter(String x, Surface sur) {
         Name = x;
@@ -344,8 +385,8 @@ class ShapeEditionAdapter extends MouseAdapter {
             doResize(e);
         }
     }
-
-    public void doMove(MouseEvent e) {
+    /**Moves clicked {@link figure} */
+    private void doMove(MouseEvent e) {
         float dx = e.getX() - x;
         float dy = e.getY() - y;
 
@@ -356,8 +397,8 @@ class ShapeEditionAdapter extends MouseAdapter {
         x += dx;
         y += dy;
     }
-
-    public void doResize(MouseEvent e) {
+    /**Resizes clicked {@link figure} */
+    private void doResize(MouseEvent e) {
         float dx = e.getX() - x;
         float dy = e.getY() - y;
 
@@ -370,10 +411,15 @@ class ShapeEditionAdapter extends MouseAdapter {
     }
 
 }
-
+/**
+ * Used to implement Action listener to Buttons
+ * 
+ *  @author Mateusz Kochanek
+ * 
+ */ 
 class MyButton extends JButton implements ActionListener {
-
-    Surface surface;
+    /**{@link Surface} we are painting on */
+    private Surface surface;
 
     public MyButton(String text, Surface sur) {
         surface = sur;
@@ -397,10 +443,17 @@ class MyButton extends JButton implements ActionListener {
         }
     }
 }
-
+/**
+ * Used to implement Action listener to CheckBoxes, used to switch between editing modes
+ * 
+ *  @author Mateusz Kochanek
+ * 
+ */ 
 class MyCheckBox extends JCheckBox implements ActionListener {
-    Surface surface;
-    MyButton CircleButton, RectangleButton, PolygonButton, ColorChooserButton;
+    /**{@link Surface} we are painting on */
+    private Surface surface;
+    /**Turned off and on when we switch editing modes */
+    private MyButton CircleButton, RectangleButton, PolygonButton, ColorChooserButton;
 
     public MyCheckBox(String text, Surface sur, MyButton C, MyButton R, MyButton P, MyButton Col) {
         surface = sur;
@@ -438,10 +491,18 @@ class MyCheckBox extends JCheckBox implements ActionListener {
         }
     }
 }
-
+/**
+ * Used to implement Action listener to MenuItems
+ * 
+ *  @author Mateusz Kochanek
+ * 
+ */ 
 class MyMenuItem extends JMenuItem implements ActionListener {
+    /**{@link Surface} we are painting on */
     Surface surface;
+    /**Name of action we want */
     String Name;
+    /**{@link App} we are working on*/
     App appW;
 
     MyMenuItem(String text, Surface sur, App app) {
@@ -508,13 +569,20 @@ class MyMenuItem extends JMenuItem implements ActionListener {
         }
     }
 }
+/**
+ * App is a program that allows us to crate and edit different shapes
+ * 
+ * @author      Mateusz Kochanek
+ */
 public class App extends JFrame {
+    /**{@link Surface} we are painting on */
     public Surface surface = new Surface();
+    /**Toolbar we are adding to our App*/
     public JToolBar toolbar = new JToolBar();
     public App() {
         initUI();
     }
-
+    /**Creates Graphic interface for App */
     private void initUI() {
         add(surface, BorderLayout.CENTER);
         CreateToolBar();
@@ -525,6 +593,7 @@ public class App extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
+    /**Replaces one surface with the other in {@link MyMenuItem}*/
     public void ChangeSurface(Surface sur)
     {
         this.remove(surface);
@@ -535,6 +604,7 @@ public class App extends JFrame {
         this.surface.repaint();
         this.validate(); 
     }
+    /**Replaces one surface with the new one in {@link MyMenuItem}*/
     public void NewSurface()
     {
         this.remove(surface);
@@ -545,6 +615,7 @@ public class App extends JFrame {
         this.surface.repaint();
         this.validate(); 
     }
+    /**Creates Toolbar for App */
     private void CreateToolBar() {
 
         toolbar = new JToolBar("Options",1);
@@ -565,6 +636,7 @@ public class App extends JFrame {
         add(toolbar, BorderLayout.EAST);
         
     }
+    /**Creates Menubar for App */
     private void CreateMenuBar() {
         JMenuBar menubar = new JMenuBar();
         MyMenuItem Open = new MyMenuItem("Open",surface,this);
