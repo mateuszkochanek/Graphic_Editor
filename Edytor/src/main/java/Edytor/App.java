@@ -359,9 +359,13 @@ class ShapeEditionAdapter extends MouseAdapter {
             }
         }
         if (Name.compareTo("Choose Color") == 0) {
-            figure.color = JColorChooser.showDialog(null, "Change Color", figure.color);
-            surface.repaint();
-
+            try {
+                figure.color = JColorChooser.showDialog(null, "Change Color", figure.color);
+                surface.repaint();
+            } catch(NullPointerException e1){
+                System.out.println("No figure was chosen");
+            }
+            
             MouseMotionListener[] mlisterners = surface.getMouseMotionListeners();
             for (MouseMotionListener mlistener : mlisterners) {
                surface.removeMouseMotionListener(mlistener);
